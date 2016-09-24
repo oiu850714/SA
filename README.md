@@ -1,2 +1,2 @@
 # SA
-希望不要做死
+this rep is for SAP's all note and codes, scripts, etc.
