@@ -1,1 +1,1 @@
-ls -ARl | egrep "^[-|d]" | awk 'BEGIN{total_size=0; total_dir=0; total_regfile=0}  {total_size+=$5} {total_regfile+=1} {total_dir+=1} END{print "size: ", total_size, "\ndir: ", total_dir, "\nfile: ", total_regfile}'
+ls -ARl | egrep "^[-|d]" | awk 'BEGIN{total_size=0; total_dir=0; total_regfile=0}  {total_size+=$5} /^-/  {total_regfile+=1} /^d/{total_dir+=1} END{print "size: ", total_size, "\ndir: ", total_dir, "\nfile: ", total_regfile}'
