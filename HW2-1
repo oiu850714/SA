@@ -1,1 +1,19 @@
-ls -ARl | egrep "^[-|d]" | awk 'BEGIN{total_size=0; total_dir=0; total_regfile=0}  {size+=$5}  {print "size: ", total_size, "\ndir: ", total_dir, "\nfile: ", total_regfile}'
+ls -ARl | egrep "^[-|d]" | sort -rn -k 5,5 | awk 'BEGIN{total_size=0; total_dir=0; total_regfile=0; line=1}  {total_size+=$5}  line < 6 {print line ,":", $5, $9; line++} /^-/{total_regfile+=1} /^d/{total_dir+=1} END{print  "Dir num:", total_dir, "\nFile num:", total_regfile,"\nTotal:", total_size }'
+
+# ls：
+	-A 列出所有檔案, 但不含 . 和 ..
+	-R 遞迴地列出所有子資料夾以及子資料夾的所有檔案
+	-l 詳細列出檔案的各種屬性
+
+# egrep：
+	用 egrep 主要市因為可以用 |, 這樣可以直接把 ls -ARl 列出來的 regular fil	e 或資料夾都抓出來
+
+# awk：
+	自己看 zzz
+	注意一下要在 pattern 的部份寫 regular expression 是用 /regex/
+	先宣告一些變數, 用來紀錄目前數到的 file size 總共多大, 總共多少 file, 總共多少 directory, 以及數到第幾行了
+# sort : 
+	-r 反向排序
+	-n 以數字解讀用來排序的 index
+	-k 指定排序的 field, delimiter 預設為 tab
+	sort 完之後, 最大的五個檔案會在前五行
