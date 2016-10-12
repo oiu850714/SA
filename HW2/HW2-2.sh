@@ -54,10 +54,16 @@ do
             dialog --title "Page" --msgbox "${url_result}" 200 100
             URL="${new_URL}"
         else
+            ######### this else block deals with case that input is bulit in command
+            ######### or shell command
+            
             maybe_bulit_in=$(echo "${new_URL}" | grep "^/.*")
-            # "^/.*" first char is '/', and .* means any string 
-            return_value="${?}"
-            if [ ${return_value} == "0" ]; then
+            # if maybe_bulit_in isn't empty, then input is a built in command
+            
+            maybe_shell_command=$(echo "${new_URL}" | grep "^!.*")
+            # if maybe_shell_command isn't empty, then input is a shell command
+
+            if [ "${maybe_built_in}" != "" ]; then
                 case "${new_URL}" in
                     "/S")
                     dialog --title "Mango Browser" --msgbox "$(curl -s ${URL})" 200 100
@@ -99,6 +105,9 @@ do
                     continue
                     ;;
                     esac
+            elif [ "${maybe_shell_command}" != "" ]; then
+                delete_exclam="$(echo "${maybe_shell_command}" | cut -c 2-)"
+                dialog --title "Mango Browser" --msgbox "$(${delete_exclam} 2>>~/.mybrowser/command_error)" 200 100
             else
                 dialog --title "Mango Browser" --msgbox "$(cat ~/.mybrowser/invalid_input)" 200 100
             fi
