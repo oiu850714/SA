@@ -68,31 +68,10 @@ do
 
             if [ "${maybe_built_in}" != "" ]; then
                 case "${new_URL}" in
-                    "/S")
+                    "/S"|"/source")
                     dialog --title "Mango Browser" --msgbox "$(curl -s ${URL})" 200 100
-                    ;;
-                    "/source")
-                    dialog --title "Mango Browser" --msgbox "$(curl -s ${URL})" 200 100
-                    ;;
-                    "/L")
-                    all_link=$(lynx -dump -listonly "${URL}" | grep "[[:digit:]]")
-                    return_value="${?}"
-                    exec 3>&1
-                    return_tag=$(dialog --title "Mango Browser" --menu "Links"  200 100 40 ${all_link} 2>&1 1>&3 3>&-)
-                    return_cancel="${?}"
-                    if [ "${return_cancel}" != "0" ];then
-                        continue
-                    fi
-                    #same redirection trick with inputbox
-                    return_tag=$(echo "${return_tag}" | cut -d '.' -f1)
-                    if [ "${return_value}" != "0" ];then
-                        continue
-                    fi
-                    link="$(echo ${all_link} | cut -d ' ' -f $((2*${return_tag})))"
-                    URL="${link}"
-                    dialog --title "Mango Browser" --msgbox "$(w3m  "${URL}")" 200 100
-                    ;;
-                    "/link")
+                    ;;  
+                    "/L"|"/link")
                     all_link=$(lynx -dump -listonly "${URL}" | grep "[[:digit:]]")
                     return_value="${?}"
                     exec 3>&1
@@ -110,7 +89,7 @@ do
                     URL="${link}"
                     dialog --title "Mango Browser" --msgbox "$(w3m  "${URL}")" 200 100
                     ;;			
-                    "/D")
+                    "/D"|"/download")
                     all_link=$(lynx -dump -listonly "${URL}" | grep "[[:digit:]]")
                     return_value="${?}"
                     exec 3>&1
@@ -127,24 +106,7 @@ do
                     link="$(echo ${all_link} | cut -d ' ' -f $((2*${return_tag})))"
                     wget ${URL} -P ~/Downloads/
                     ;;
-                    "/download")
-                    all_link=$(lynx -dump -listonly "${URL}" | grep "[[:digit:]]")
-                    return_value="${?}"
-                    exec 3>&1
-                    return_tag=$(dialog --title "Mango Browser" --menu "Links"  200 100 40 ${all_link} 2>&1 1>&3 3>&-)
-                    return_cancel="${?}"
-                    if [ "${return_cancel}" != "0" ];then
-                        continue
-                    fi
-                    #same redirection trick with inputbox
-                    return_tag=$(echo "${return_tag}" | cut -d '.' -f1)
-                    if [ "${return_value}" != "0" ];then
-                        continue
-                    fi
-                    link="$(echo ${all_link} | cut -d ' ' -f $((2*${return_tag})))"
-                    wget ${URL} -P ~/Downloads/
-                    ;;
-                    "/B")
+                    "/B"|"/bookmark")
                     exec 3>&1
                     return_tag=$(dialog --title "Mango Browser" --menu "Bookmarks:"  200 100 50 $(cat  -n ~/.mybrowser/bookmark) 2>&1 1>&3 3>&-)
                     return_cancel="${?}"
@@ -174,40 +136,7 @@ do
                         ;;
                     esac
                     ;;
-                    "/bookmark")
-                    exec 3>&1
-                    return_tag=$(dialog --title "Mango Browser" --menu "Bookmarks:"  200 100 50 $(cat  -n ~/.mybrowser/bookmark) 2>&1 1>&3 3>&-)
-                    return_cancel="${?}"
-                    if [ "${return_cancel}" != "0" ];then
-                        continue
-                    fi
-                    case "${return_tag}" in
-                        "1")
-                        exec 3>&1
-                        add_URL=$(dialog --title "Mango Browser"  --inputbox "Add a bookmark" 200 100 2>&1 1>&3 3>&-)
-                        # case when user enter directly or cancel, echo will add a empty line, which crash the /B case
-                        if [ "${add_URL}" != "" ]; then
-                            echo "${add_URL}">> ~/.mybrowser/bookmark
-                        fi
-                        ;;
-                        "2")
-                        #delete_a_bookmark
-                        exec 3>&1
-                        return_tag=$(dialog --title "Mango Browser" --menu "Delete Bookmark:" 200 100 50 $(cat ~/.mybrowser/bookmark | awk 'BEGIN{line=1} line>=3 {print line-2; print;} {line++}') 2>&1 1>&3 3>&- )
-                        new_bookmarks=$( echo $(cat ~/.mybrowser/bookmark) | cut -d ' ' -f 1-$((${return_tag}-1+2)) -f $((${return_tag} + 1+2))- )
-                        echo ${new_bookmarks} | xargs -n 1 > ~/.mybrowser/bookmark
-                        ;;
-                        *)
-                        link=$(echo $(cat ~/.mybrowser/bookmark) | cut -d ' ' -f ${return_tag})
-                        URL="${link}"
-                        dialog --title "Mango Browser" --msgbox "$(w3m "${URL}")" 200 100
-                        ;;
-                    esac
-                    ;;
-                    "/H")
-                    dialog --title "Mango Browser" --msgbox "$(cat ~/.mybrowser/help)" 200 100
-                    ;;
-                    "/help")
+                    "/H"|"/help")
                     dialog --title "Mango Browser" --msgbox "$(cat ~/.mybrowser/help)" 200 100
                     ;;
                     *)
