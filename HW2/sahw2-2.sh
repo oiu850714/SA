@@ -16,7 +16,7 @@
 
 #declare variable
 
-URL="https://google.com"
+URL=$(cat ~/.mybrowser/homepage)
 tmpfile="tmp.txt"
 # URL is the url the browser will go to.
 
@@ -68,6 +68,15 @@ do
 
             if [ "${maybe_built_in}" != "" ]; then
                 case "${new_URL}" in
+                    "/M")
+                    exec 3>&1
+                    new_page=$(dialog --title "Mango Browser" --inputbox "Change Homepage:" 200 100 2>&1 1>&3 3>&- )
+                    return_cancel="${?}"
+                    if [ "${return_cancel}" != "0" ]; then
+                        continue;
+                    fi
+                    echo "${new_page}" > ~/.mybrowser/homepage
+                    ;;
                     "/S"|"/source")
                     dialog --title "Mango Browser" --msgbox "$(curl -s ${URL})" 200 100
                     ;;  
@@ -104,7 +113,7 @@ do
                         continue
                     fi
                     link="$(echo ${all_link} | cut -d ' ' -f $((2*${return_tag})))"
-                    wget ${URL} -P ~/Downloads/
+                    wget ${link} -P ~/Downloads/
                     ;;
                     "/B"|"/bookmark")
                     exec 3>&1

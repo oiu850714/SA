@@ -1,0 +1,61 @@
+#! /usr/local/bin/bash
+
+case "$1" in
+"list")
+	if [ "$#" == "2" ];then
+		zfs list -r -t snapshot $2 | grep zbackup
+	else
+		zfs list -r -t snapshot $2 | grep zbackup | awk -v ID=$3 'BEGIN{line=0} {line++} line==ID{print}'	
+	fi
+;;
+"delete")
+	if [ "$#" == "2" ];then
+		for snapshot in $(echo $(zfs list -r -t snapshot ${2} |grep zbackup | cut -d ' ' -f 1));
+		do
+			zfs destroy ${snapshot}
+		done
+	else
+		loopvar=1
+		for snapshot in $(echo $(zfs list -r -t snapshot ${2} |grep zbackup | cut -d ' ' -f 1));
+		do
+			if [ "${loopvar}" == "$3" ];then
+				zfs destroy ${snapshot}
+				exit 0
+			fi
+			loopvar=$((${loopvar} + 1))
+		done 	
+	fi
+;;
+*)
+	if [ "$#" == "2" ];then
+		#zfs list -r -t snapshot "$1"|grep zbackup
+		zfs snapshot "${1}"@"zbackup"-"$(date +%s)"
+		num_of_snap=$(zfs list -r -t snapshot "${1}" | grep zbackup | wc -l)
+		if [ $((${num_of_snap} - $2)) -lt 0 ];then
+			exit 0
+		fi
+		while [ $((${num_of_snap} - $2)) != 0 ];
+		do
+			num_of_snap=$((${num_of_snap} - 1))
+			echo fuckyou= =
+			zfs destroy $(echo $( zfs list -r -t snapshot ${1} |grep zbackup) | cut -d ' ' -f 1)
+		done
+
+					
+	else
+		#zfs list -r -t snapshot "$1"|grep zbackup
+                zfs snapshot "${1}"@"zbackup"-"$(date +%s)"
+                num_of_snap=$(zfs list -r -t snapshot ${1} | grep zbackup | wc -l)
+                if [ $((${num_of_snap} - 20)) -lt 0 ];then
+                        exit 0
+                fi
+                while [ $((${num_of_snap} - 20)) != 0 ];
+                do
+                        num_of_snap=$((${num_of_snap} - 1))
+                        echo fuckyou= =
+                        zfs destroy $(echo $( zfs list -r -t snapshot ${1} |grep zbackup) | cut -d ' ' -f 1)
+                done
+	fi
+;;
+esac
+#date +%s
