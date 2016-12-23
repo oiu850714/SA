@@ -1,0 +1,1 @@
+sudo zfs send SA/dataset1@zbackup-1479266704 | xz | openssl enc -aes-256-cbc | ~/gdrive upload - snapshot1

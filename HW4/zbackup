@@ -1,0 +1,83 @@
+#! /usr/local/bin/bash
+
+if [ "$#" == "0" ];then
+	echo "usage: [--list | --delete] target dataset [ID] | target dataset [rotation count] | backup dataset ID | rollback dataset"
+	exit 0
+fi
+
+case "$1" in
+"list")
+	if [ "$#" == "2" ];then
+		zfs list -r -t snapshot $2 | grep zbackup
+	else
+		zfs list -r -t snapshot $2 | grep zbackup | awk -v ID=$3 'BEGIN{line=0} {line++} line==ID{print}'	
+	fi
+;;
+"delete")
+	if [ "$#" == "2" ];then
+		for snapshot in $(echo $(zfs list -r -t snapshot ${2} |grep zbackup | cut -d ' ' -f 1));
+		do
+			zfs destroy ${snapshot}
+		done
+	else
+		loopvar=1
+		for snapshot in $(echo $(zfs list -r -t snapshot ${2} |grep zbackup | cut -d ' ' -f 1));
+		do
+			if [ "${loopvar}" == "$3" ];then
+				zfs destroy ${snapshot}
+				exit 0
+			fi
+			loopvar=$((${loopvar} + 1))
+		done 	
+	fi
+;;
+"backup")
+	if [ "$#" == "2" ];then
+		echo "Please type ID you want to backup"
+	else
+		if [ "$(./zbackup list ${2} ${3})" == "" ];then
+			echo "ID you select not exist."
+			exit 1
+		fi
+		before_slash="$(echo ${2} | cut -d '/' -f 1)"
+		after_slash="$(echo ${2} | cut -d '/' -f 2)"
+		snapshot_without_slash="${before_slash}.${after_slash}"
+		zfs send $(./zbackup list ${2} ${3} | cut -d ' ' -f 1) | xz | openssl enc -aes-256-cbc | /home/oiu/gdrive upload - zfs-"${snapshot_without_slash}"
+	fi
+;;
+"rollback")
+	:
+;;
+*)
+	if [ "$#" == "2" ];then
+		#zfs list -r -t snapshot "$1"|grep zbackup
+		zfs snapshot "${1}"@"zbackup"-"$(date +%s)"
+		num_of_snap=$(zfs list -r -t snapshot "${1}" | grep zbackup | wc -l)
+		if [ $((${num_of_snap} - $2)) -lt 0 ];then
+			exit 0
+		fi
+		while [ $((${num_of_snap} - $2)) != 0 ];
+		do
+			num_of_snap=$((${num_of_snap} - 1))
+			echo "delete snapshot: "$(echo $( zfs list -r -t snapshot ${1} |grep zbackup) | cut -d ' ' -f 1)
+			zfs destroy $(echo $( zfs list -r -t snapshot ${1} |grep zbackup) | cut -d ' ' -f 1)
+		done
+
+					
+	else
+		#zfs list -r -t snapshot "$1"|grep zbackup
+                zfs snapshot "${1}"@"zbackup"-"$(date +%s)"
+                num_of_snap=$(zfs list -r -t snapshot ${1} | grep zbackup | wc -l)
+                if [ $((${num_of_snap} - 20)) -lt 0 ];then
+                        exit 0
+                fi
+                while [ $((${num_of_snap} - 20)) != 0 ];
+                do
+                        num_of_snap=$((${num_of_snap} - 1))
+                        echo fuckyou= =
+                        zfs destroy $(echo $( zfs list -r -t snapshot ${1} |grep zbackup) | cut -d ' ' -f 1)
+                done
+	fi
+;;
+esac
+#date +%s
