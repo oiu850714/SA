@@ -7,7 +7,7 @@ fi
 
 case "$1" in
 "list")
-	if [ "$#" == "2" ];then
+	if [ "$#" == "1" ];then
 		zfs list -r -t snapshot $2 | grep zbackup
 	else
 		zfs list -r -t snapshot $2 | grep zbackup | awk -v ID=$3 'BEGIN{line=0} {line++} line==ID{print}'	
@@ -47,6 +47,10 @@ case "$1" in
 ;;
 "rollback")
 	:
+;;
+
+"daemon")
+	service zbackupd start ${3}
 ;;
 *)
 	if [ "$#" == "2" ];then

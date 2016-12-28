@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+#
+
+# PROVIDE: zbackupd
+: # REQUIRE: 
+: # KEYWORD: shutdown
+
+. /etc/rc.subr
+
+: ${zbackupd_enable:="NO"}
+: ${zbackupd_config:="/usr/local/etc/zbackup.conf"}
+
+name="zbackupd"
+rcvar="${name}_enable"
+command="/usr/local/bin/${name}"
+command_args="$2"
+command_interpreter="/usr/local/bin/bash"
+sig_reload="SIGHUP"
+pidfile="/var/run/${name}.pid"
+required_files="/usr/local/etc/zbackup.conf"
+extra_commands="reload list"
+
+#start_cmd="zbackupd_start"
+list_cmd="zbackupd_list"
+
+#echo ${1}
+#echo ${2}
+#echo ${3}
+#echo ${4}
+#echo ${5}
+
+zbackupd_start()
+{
+	echo ${command_args}
+	${command} ${command_args}
+}
+
+zbackupd_list()
+{
+	/usr/local/bin/zbackup list
+}
+
+load_rc_config $name
+run_rc_command "$@"
+# @ is fucking shit

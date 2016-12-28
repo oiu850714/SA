@@ -1,0 +1,46 @@
+#!/usr/local/bin/bash
+
+#trap "echo fuck you" "SIGHUP"
+#trap "ls" "USR1"
+#trap tmp "TERM"
+
+
+parse_config(){
+
+	cp ${conf_path} /usr/local/etc/zbackup_copy.conf
+	#echo ${x} x scope?
+	x=$(date +%s)
+	#echo ${x} change start time
+
+}
+
+main()
+{
+	trap "parse_config" "SIGHUP"
+	if [ "${1}" = "" ];then
+		conf_path="/usr/local/etc/zbackup.conf"
+	else
+		conf_path="${1}"
+	fi
+	echo $BASHPID > /var/run/zbackupd.pid
+	cp ${conf_path} /usr/local/etc/zbackup_copy.conf
+	x=$(date +%s)
+	echo ${x}
+	while true; do
+		return_second=$(echo ${x} | /usr/local/bin/parse_config.py | cut -d ' ' -f 3)
+		#echo second: ${return_second}
+		sleep $(($(echo $( echo ${x} | /usr/local/bin/parse_config.py ) | cut -d ' ' -f 3 ) * 60 ))
+		backup_list=$(echo $(date +%s | /usr/local/bin/parse_config.py | cut -d ' ' -f 1-2))
+		while [ "${backup_list}" != "" ];do
+			backup=$(echo ${backup_list} | cut -d ' ' -f 1-2)
+			backup_list=$(echo ${backup_list} | cut -d ' ' -f 3- )
+			/usr/local/bin/zbackup ${backup}
+		done
+		sleep 60
+		#feelsogood
+
+	done
+}
+
+main ${1} > /dev/null 2>&1 &
+
